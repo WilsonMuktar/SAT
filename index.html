@@ -1,0 +1,941 @@
+<!--Author: WilsonM-->
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>TLERENDERER</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="css/bootstrap.css" rel="stylesheet" type="text/css" media="all">
+<script src="js/jquery-1.11.0.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/bootstrap-treeview.js"></script>
+<link href="css/bootstrap-treeview.css"/>
+<script src="js/MatricesnVector/sylvester.js"></script>
+<link href="css/style.css" rel="stylesheet" type="text/css" media="all"/>
+<script type="application/x-javascript"> 
+	addEventListener("load", function() { setTimeout(hideURLbar, 0); }, false); 
+	function hideURLbar(){ window.scrollTo(0,1); } 
+</script>
+<!--Custom Fonts-->
+<link href="css/customFont.css" rel="stylesheet" type="text/css" media="all"/>
+<link rel="stylesheet" href="css/flexslider.css" type="text/css" media="screen" />
+<script src="../Cesium/Cesium.js"></script>
+<style>
+   @import url(../Cesium/Widgets/widgets.css);
+   html, body,#cesiumContainer {
+       width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden;
+   }
+   .btn{
+		max-height:30px;
+		width:auto;
+		font-size:2vh;
+        color:#505050;
+        background: -moz-linear-gradient(top, #f0f0f0, #fafafa);
+        background: -webkit-gradient(linear, center top, center bottom, from(#f0f0f0), to(#fafafa));
+	}
+   .panel{
+		padding : 5px;
+        background: -moz-linear-gradient(top, rgba(16,16,16,0.5),  rgba(26,26,26,0.5));
+        background: -webkit-gradient(linear, center top, center bottom, from(rgba(16,16,16,0.5)), to(rgba(26,26,26,0.5)));
+	}
+	.expandtoolbox{
+		display:inline;
+		float:right;
+		bottom : 0px;
+		width: 15px; height:15px;
+		background-color :#505050;
+		border-radius:50%;
+		-moz-border-radius:50%;
+		-webkit-border-radius:50%;
+	}
+	table#miyazaki { 
+	  margin: 0 auto;
+	  border-collapse: collapse;
+	  //font-family: Agenda-Light, sans-serif;
+	  //font-weight: 100; 
+	  background: #333; color: #fff;
+	  text-rendering: optimizeLegibility;
+	  border-radius: 5px; 
+	  text-align:center; 
+	}
+	table#miyazaki tbody th { font-weight: 600; }
+	table#miyazaki tbody th { 
+	  text-align : center;
+	  padding: .2rem; font-size: .8rem;
+	}
+	table#miyazaki tbody td { 
+	  padding: .8rem; font-size: .8rem;
+	  color: #444; background: #eee; 
+	}
+	table#miyazaki tbody tr:not(:last-child) { 
+	  border-top: 1px solid #ddd;
+	  border-bottom: 1px solid #ddd;  
+	}
+
+	@media screen and (max-width: 600px) {
+	  table{
+		overflow-x: auto;
+		margin-top:5px;
+	  }
+	  table#miyazaki thead { display: none; }
+	  table#miyazaki tbody td { 
+		display: block; 
+	  }
+	  table#miyazaki tbody tr td:first-child { 
+		background: #666; color: #fff; 
+	  }
+	  table#miyazaki tbody td:before { 
+		content: attr(data-th); 
+		font-weight: bold;
+		display: inline-block;
+		width: 6rem;  
+	  }
+	}
+	#loadingbg{
+	  width:100%;
+	  height:100%;
+	  top:0;
+	  position:absolute;
+	  z-index:99;
+	  background: url(images/Earthblueprint.png) no-repeat center center fixed; 
+	  -webkit-background-size: cover;
+	  -moz-background-size: cover;
+	  -o-background-size: cover;
+	  background-size: cover;
+	}
+	
+	/* --------- COLLAPSIBLE PANELS ----------*/
+	h2, p, ol, ul, li {
+		margin:0px;
+		padding:0px;
+		font-size:13px;
+		font-family:Arial, Helvetica, sans-serif;
+	}
+	 
+	#container {
+		width:300px;
+		margin:auto;
+		margin-top:10px;
+	}
+	.expandable-panel {
+		width:100%;
+		position:relative;
+		min-height:30px;
+		overflow:hidden;
+		margin-bottom: 5px;
+		border:1px solid #999;
+	}
+	.expandable-panel-heading {
+		width:100%;
+		cursor:pointer;
+		min-height:30px;
+		clear:both;
+		background-color:#E5E5E5;
+		position:relative;
+	}
+	.expandable-panel-heading:hover {
+		color:#666;
+	}
+	.expandable-panel-heading h2 {
+		padding:5px 5px 9px 15px;
+		font-size:18px;
+		line-height:20px;
+	}
+	.expandable-panel-content {
+		//padding:0 15px 0 15px;
+		margin-top:-999px;
+	}
+	.expandable-panel-content p {
+		padding:4px 0 6px 0;
+	}
+	.expandable-panel-content p:first-child  {
+		padding-top:10px;
+	}
+	.expandable-panel-content p:last-child {
+		padding-bottom:15px;
+	}
+	.icon-settings {
+		width:20px;
+		height:20px;
+		position:absolute;
+		background-image:url(images/settings.png);
+		background-size:cover;
+		right:15px;
+	}
+	.icon-satellite {
+		width:20px;
+		height:20px;
+		position:absolute;
+		background-image:url(images/satellite.png);
+		background-size:cover;
+		right:15px;
+	}
+	.icon-info {
+		width:20px;
+		height:20px;
+		position:absolute;
+		background-image:url(images/info.png);
+		background-size:cover;
+		right:15px;
+	}
+	.expandable-panel-content img {
+		float:right;
+		padding-left:12px;
+	}
+	.header-active {
+		background-color:#D0D7F3;
+	}
+	
+</style>
+  <link href="css/stacktable.css" rel="stylesheet" />
+	<!--TLERENDERER-->
+	<script src="js/TLErenderer/SGP4unit.js"></script>
+	<script src="js/TLErenderer/Kepler.js"></script>
+	<script src="js/TLErenderer/GeoFunctions.js"></script>
+	<script src="js/TLErenderer/MathUtils.js"></script>
+	<script src="js/TLErenderer/J2kCoordinateConversion.js"></script>
+	<script src="js/TLErenderer/AstroConst.js"></script>
+	<script src="js/TLErenderer/Time.js"></script>
+	<script src="js/TLErenderer/TLE.js"></script>
+	<script src="js/TLErenderer/SGP4.js"></script>
+	<script src="js/TLErenderer/SGP4utils.js"></script>
+	<script src="js/TLErenderer/SGP4SatData.js"></script>
+	<script src="js/TLErenderer/SatelliteTleSGP4.js"></script>
+	<script src="js/TLErenderer/orbitsatellite.js"></script>
+	<script src="js/TLErenderer/orbitcone.js"></script>
+	<script src="js/TLErenderer/orbitcircle.js"></script>
+	<script src="js/TLErenderer/orbitline.js"></script>
+</head>
+<body>
+<!--div id="loadingbg"></div-->
+<div class="banner">
+  <div class="header">
+		<div class="container">
+		 <div class="header-main">
+				<div class="top-nav">
+					<span class="menu"> <img src="images/icon.png" alt=""/></span>
+					<nav class="cl-effect-1">
+						<ul class="res">
+						   <li><a href="index.html" class="active">Home</a></li> 
+						   <li><a href="#">About</a></li> 
+							<li><a href="#">Services</a></li>
+							<li><a href="#">Contact</a></li> 
+					   </ul>
+					</nav>
+				</div>
+				<div class="clearfix"> </div>
+		 </div>
+	</div>
+  </div>
+  <div class="logo">
+	<!--h1><a href="index.html">EARTH</a></h1-->
+    <img id="LOGO" src="images/logo.png" style="width:20vh;" onclick="document.getElementById('tooltip').innerHTML='';/*selectedentity=undefined;*/"></img>
+	<center><div id="tooltip" style="display:inline;font-size:2vh;"/></center>
+  </div>
+</div>
+<div id="FPS" style="position:absolute;z-index:3;right:1px;top:1px;"></div>
+  <center>
+    <div id="cesiumContainer" style="position:absolute;z-index:1;top:0;left:0;"></div>
+    <div id="hidecredit"/>
+  </center>
+<div class="panel" id="controlpanel" style="z-index:1;position:absolute;top:2%;left:-260px;transition-duration:2s;">
+	<div style="float:right;padding-bottom:5px;">
+		<input class="btn" type="button" id="closepanel_btn" onclick="showhidepanel();" value=">>>"/>
+	</div>
+	<div class="expandable-panel" id="cp-1">
+        <div class="expandable-panel-heading">
+            <h2>Control Panel<span class="icon-settings"></span></h2>
+        </div>
+        <div class="expandable-panel-content">
+		  <div style="padding-top:10px; padding-left:15px;">
+			<input class="btn" type="button" id="stop_btn" onclick="stopButtonActionPerformed();" value="■"/>
+			<input class="btn" type="button" id="play_btn" onclick="playButtonActionPerformed();" value="►"/>
+			<input class="btn" type="label" id="time_label" value="0" style="width:160px;" readonly/>
+		  </div>
+		  <div style="padding-top:5px; padding-left:15px; padding-bottom:10px;">
+			<input class="btn" type="checkbox" id="Satellite_label" onclick="ShowSateliteLabel(this.checked)" checked/><h style="color:#f0f0f0;">LABEL</h>
+			<input class="btn" type="checkbox" id="Satellite_orbit" onclick="ShowSatelliteOrbit(this.checked)" /><h style="color:#f0f0f0;">ORBIT</h>
+			<input class="btn" type="checkbox" id="Satellite_fill" onclick="ShowSatelliteFill(this.checked)" /><h style="color:#f0f0f0;">FILL</h>
+			<input class="btn" type="checkbox" id="Satellite_coverage" onclick="ShowCoverage(this.checked)" /><h style="color:#f0f0f0;">COVERAGE</h>
+		  </div>
+        </div>
+    </div>
+	<div class="expandable-panel" id="cp-2">
+        <div class="expandable-panel-heading">
+            <h2>Satellites List<span class="icon-satellite"></span></h2>
+         </div>
+        <div class="expandable-panel-content">
+			<div style="max-height:300px;width:110%;overflow-y:scroll;">
+				<div id="tree"></div>
+			</div>
+        </div>
+    </div>
+	<div class="expandable-panel" id="cp-3">
+        <div class="expandable-panel-heading">
+            <h2>Satellite Info<span class="icon-info"></span></h2>
+         </div>
+        <div class="expandable-panel-content">
+			<div id="infopanel" style="width:100%;color:#FFF;">
+				<center><p>Click Satellite for more info</p></center>
+				<center><p><a href="http://www.celestrak.com">www.celestrak.com</a></p></center>
+			</div>
+        </div>
+    </div>
+</div>
+<div id="Loading" style="position:absolute;z-index:99;top:50%;left:50%;width:150px;height:200px;margin-top:-100px;margin-left:-75px;background-color:#FFFFFF;border-radius:25px;">
+	<img src="images/loading.gif" style="position:absolute;top:50%;left:50%;width:100px;height:100px;margin-top:-75px;margin-left:-50px;"/>
+	<p style="position:absolute;top:50%;left:50%;width:100px;height:30px;margin-top:50px;margin-left:-25px;"> Loading </p>
+</div>
+	<script src="js/earth.js"></script>
+	<script>
+	
+	function showhidepanel(){
+		if($('#controlpanel').css("left")=='10px'){
+			$('#controlpanel').css("left","-260px");
+			$('#closepanel_btn').val('>>>');
+		}
+		else{
+			$('#controlpanel').css("left","10px");
+			$('#closepanel_btn').val('<<<');
+		}
+	}
+	
+	//initialize
+	var BigEarth = new EARTH('cesiumContainer');
+	BigEarth.initEARTH();
+	BigEarth.sethandler();
+	
+	//FPS
+	var frame = 0;  
+	var time = 0;  
+	function update_fps() {
+		frame++;  
+		var now = new Date().getTime();  
+		if (now - time > 1000) {  
+			document.getElementById('FPS').innerHTML = frame +" FPS";
+			time = now;  
+			frame = 0;  
+		}
+	}
+	function renderfps() {  
+		update_fps();
+		Cesium.requestAnimationFrame(renderfps);  
+	}  
+	var c = BigEarth.viewer.scene.canvas;  
+	var gl = c.getContext('experimental-webgl');
+	renderfps();
+	
+	function eciecef(id){
+		if(id=="ECI"){
+			document.getElementById("ECI").checked = true;
+			document.getElementById("ECEF").checked = false;
+			BigEarth.createfakeearth();
+		}else{
+			document.getElementById("ECI").checked = false;
+			document.getElementById("ECEF").checked = true;
+			BigEarth.removefakeearth();
+		}
+		//line
+		for(var i=0;i<BigEarth.SGP4Array.length;i++){
+			var sat = BigEarth.SGP4Array[i].getProp();
+			BigEarth.SGP4Array[i].drawOrbitline(sat.getName(),sat, getCurrentJulianDate());
+			updateTime();
+		}
+		
+		if(BigEarth.GroundStation!=null)
+			BigEarth.calculateVisible();
+	}
+	function SwitchViewMode(){
+		BigEarth.SwitchViewMode();
+	}
+	function DisplayREALTLE(TLEarray,name,params){
+		BigEarth.removeAll();
+		var request = $.ajax({
+             type: 'GET',
+             url: "realTLE.php?system="+name+params, // data obtain should be at least 3 lines with "\n" new line chars at the end of each line
+                success: function(data) {
+                    //console.log(data);
+					processTLEstring(TLEarray,name,data);
+					setTree();
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log(jqXHR, textStatus, errorThrown);
+            }
+        });
+	}
+	function fileSelected(){
+		BigEarth.removeAll();
+		var iMaxFilesize = 1048576; // 1MB
+		// get selected file element
+		var oFile = document.getElementById('TLE_file').files[0];
+		// filter for image files
+		var rFilter = /^(text\/plain)$/i;
+		if (!rFilter.test(oFile.type)) {console.log('Please choose text!');return;}
+		// little test for filesize
+		if (oFile.size > iMaxFilesize) {console.log('Max Size exceed!');return;}
+		//Read file
+		if (oFile) {
+		  var r = new FileReader();
+		  r.onload = function(e) { 
+			//reset all entities
+			//this.removeAll();
+			var contents = e.target.result;
+			processTLEstring(contents);
+		  }
+		  r.readAsText(oFile);
+		} else { 
+		  console.log("Failed to load file");
+		}
+	}
+	function processTLEstring(TLEarray,name,result){
+		//BigEarth.SGP4Array = [];
+		var title = "";
+		var line1 = "";
+		var line2 = "";
+		var contents = result;
+		var contentarray = contents.split("\n");
+		var TLEnodechilds = [];
+		for(var i=0;i<contentarray.length;i++){
+			if(contentarray[i].substr(0,1)=='1'){
+				line1 = contentarray[i];
+			}
+			else if(contentarray[i].substr(0,1)=='2'){
+				line2 = contentarray[i];
+			}
+			else{
+				title = contentarray[i];
+			}
+			if(title!=""&&line1!=""&&line2!=""){
+				TLEnodechilds.push(new TLEnode(title,'',new TLEnodestate(false,false,false,false),null));
+				//Create SGP4 object	
+				//var sgp4 = new SGP4(BigEarth,title,line1,line2);
+				//BigEarth.SatellliteNames.push(title);
+				//BigEarth.SGP4Array.push(sgp4);	
+				BigEarth.TLErecords.push(new TLErecord(title,line1,line2));
+				title = "";
+				line1 = "";
+				line2 = "";
+				//break;
+			}
+		}
+		TLEarray.push(new TLEnode(name,contentarray.length/3-1,new TLEnodestate(false,false,false,false),TLEnodechilds));
+	}
+	
+	// updates timestep data and GUI based on current currentTimeStepSpeedIndex
+    function updateTimeStepsDataGUI(){
+        // bounds checking
+        if(currentTimeStepSpeedIndex > (timeStepSpeeds.length-1))
+        {
+            currentTimeStepSpeedIndex = (timeStepSpeeds.length-1);
+        }
+        else if(currentTimeStepSpeedIndex < 0)
+        {
+            currentTimeStepSpeedIndex = 0;
+        }
+        
+        var speedInSec = timeStepSpeeds[currentTimeStepSpeedIndex];
+        //document.getElementById('timestep_label').value = speedInSec;
+        animationSimStepSeconds = speedInSec; // seconds to days 
+    }
+	function decementTimeStepButtonActionPerformed(){
+		currentTimeStepSpeedIndex--;
+        updateTimeStepsDataGUI();
+	}
+	function incrementTimeStepButtonActionPerformed(){
+		currentTimeStepSpeedIndex++;
+        updateTimeStepsDataGUI();
+	}
+	function playButtonActionPerformed(){
+		currentPlayDirection = 1; // forwards
+        runAnimation(); // perform animation
+	}
+	function playBackButtonActionPerformed(){
+		currentPlayDirection = -1; // backwards
+        runAnimation();
+	}
+	function stopButtonActionPerformed(){
+		stopAnimation();
+	}
+	function stepForwardButtonActionPerformed(){
+		currentPlayDirection = 1; // forward in time
+        updateTime();
+	}
+	function stepBackButtonActionPerformed(){
+		currentPlayDirection = -1; // backward in time
+        updateTime();
+	}
+ 
+	//TIME CONTROL
+	var currentJulianDate = new Time();
+	var stopHit = false;
+	function getCurrentJulianDate(){
+		return parseFloat(currentJulianDate.getJulianDate());
+	}
+    function stopAnimation(){
+        stopHit = true; // set flag for next animation step
+    }
+	function runAnimation(){
+        // useses globally set animation direction and starts animation
+        document.getElementById('play_btn').style.border = "solid 1px blue";
+        document.getElementById('stop_btn').style.border = "none";
+        
+        stopHit = false;
+		var obj = this;
+        //Create a timer.
+		runtimer = function(){// take one time step in the aimation
+            Cesium.requestAnimationFrame(function(){updateTime();}); // animate
+            if (stopHit==true)
+            {
+                clearInterval(obj.playTimer);
+				obj.playTimer = null;
+                obj.resetAnimationIcons();    
+            }            
+		}
+		if(this.playTimer==null){
+			this.playTimer = setInterval(runtimer,animationRefreshRateMs);
+		}
+    } // runAnimation
+    function resetAnimationIcons(){
+		document.getElementById('play_btn').style.border = "none";
+        document.getElementById('stop_btn').style.border = "solid 1px blue";
+    } // resetAnimationIcons
+    function updateTime(){
+		//if(document.getElementById('ECI').checked==true){			
+			if(BigEarth.fakeearth!=null)
+				BigEarth.rotatefakeearth();
+		//}
+        // save old time
+        var prevJulDate = getCurrentJulianDate();
+        // Get current simulation time!
+        currentJulianDate.addSeconds(currentPlayDirection*animationSimStepSeconds );
+        // if time jumps by more than 91 minutes check period of sat to see if
+        // ground tracks need to be updated
+        var timeDiffDays = Math.abs(getCurrentJulianDate()-prevJulDate); // in days
+        BigEarth.checkTimeDiffResetGroundTracks(timeDiffDays);
+        // update date box:
+        disTime( currentJulianDate.getDateTimeStr());
+        // now propogate all satellites to the current time  
+        for(var i=0;i<BigEarth.SGP4Array.length;i++)
+        {
+			BigEarth.loopRendering(i);
+		}
+    } // update time
+	
+	//ControlBOX
+	function ShowSateliteLabel(show){
+		for(var i=0;i<BigEarth.SGP4Array.length;i++)
+			BigEarth.SGP4Array[i].getSatellite().getSatelliteLabel().show = show;
+	}
+	function ShowSatelliteOrbit(show){
+		for(var i=0;i<BigEarth.SGP4Array.length;i++){
+			var orbit = BigEarth.SGP4Array[i].getOrbitline();
+			if(orbit==null){
+				BigEarth.SGP4Array[i].line = new orbitline(BigEarth.viewer,Cesium.Cartesian3.fromDegreesArray([]),Cesium.Cartesian3.fromDegreesArray([]),Cesium.Cartesian3.fromDegreesArray([]),Cesium.Cartesian3.fromDegreesArray([]),
+						1,Cesium.Color.RED);
+				BigEarth.SGP4Array[i].drawOrbitline(BigEarth.SGP4Array[i].SGP4name,BigEarth.SGP4Array[i].prop,getCurrentJulianDate());
+			}
+			else{
+				orbit.drawline(show);
+			}
+		}
+	}
+	function ShowSatelliteFill(show){
+	
+	}
+	function ShowCoverage(show){
+		for(var i=0;i<BigEarth.SGP4Array.length;i++){
+			if(BigEarth.is2DMODE==false){ 
+				var cone = BigEarth.SGP4Array[i].getOrbitcone();
+				if(cone==null){
+					var realalt = BigEarth.SGP4Array[i].lla[2];
+					//Draw Cone
+					BigEarth.SGP4Array[i].cone = new orbitcone(BigEarth.viewer,BigEarth.SGP4Array[i].satellite.position,calcConeRadiusHeightFromAlt(realalt)[0],calcConeRadiusHeightFromAlt(realalt)[1],Cesium.Color.WHITE.withAlpha(0.2));
+					BigEarth.SGP4Array[i].cone.setFill(true);
+					BigEarth.SGP4Array[i].cone.drawCone(true);
+				}
+				else
+					cone.drawCone(show);
+			}
+			else {
+				var circle = BigEarth.SGP4Array[i].getOrbitcircle();
+				if(circle==null){
+					var realalt = BigEarth.SGP4Array[i].lla[2];
+					//Draw Circle
+					var transGreen = Cesium.Color.GREEN.withAlpha(0.3);
+					BigEarth.SGP4Array[i].circle = new orbitcircle(BigEarth.viewer,BigEarth.SGP4Array[i].satellite.position,calcFootPrintRadiusFromAlt(realalt),transGreen);
+					BigEarth.SGP4Array[i].circle.drawCircle(true);
+				}
+				else
+					circle.drawCircle(show);
+			}
+		}
+	}
+	
+    //EXPANDABLE PANELS
+	(function($) {
+    $(document).ready(function () {
+        var panelspeed = 500; //panel animate speed in milliseconds
+        var totalpanels = 3; //total number of collapsible panels
+        var defaultopenpanel = 0; //leave 0 for no panel open
+        var accordian = false; //set panels to behave like an accordian, with one panel only ever open at once      
+ 
+        var panelheight = new Array();
+        var currentpanel = defaultopenpanel;
+        var iconheight = parseInt($('.icon-close-open').css('height'));
+        var highlightopen = true;
+ 
+        //Initialise collapsible panels
+        function panelinit() {
+			for (var i=1; i<=totalpanels; i++) {
+				panelheight[i] = parseInt($('#cp-'+i).find('.expandable-panel-content').css('height'));
+                $('#cp-'+i).find('.expandable-panel-content').css('margin-top', -20*panelheight[i]);
+                if (defaultopenpanel == i) {
+                    $('#cp-'+i).find('.icon-close-open').css('background-position', '0px -'+iconheight+'px');
+                    $('#cp-'+i).find('.expandable-panel-content').css('margin-top', 0);
+                }
+            }
+        }
+ 
+        $('.expandable-panel-heading').click(function() {
+            var obj = $(this).next();
+            var objid = parseInt($(this).parent().attr('ID').substr(3,2));
+            currentpanel = objid;
+            if (accordian == true) {
+                resetpanels();
+            }
+ 
+            if (parseInt(obj.css('margin-top')) <= (panelheight[objid]*-1)) {
+                obj.clearQueue();
+                obj.stop();
+                obj.prev().find('.icon-close-open').css('background-position', '0px -'+iconheight+'px');
+                obj.animate({'margin-top':0}, panelspeed);
+                if (highlightopen == true) {
+                    $('#cp-'+currentpanel + ' .expandable-panel-heading').addClass('header-active');
+                }
+            } else {
+                obj.clearQueue();
+                obj.stop();
+                obj.prev().find('.icon-close-open').css('background-position', '0px 0px');
+                obj.animate({'margin-top':(panelheight[objid]*-20)}, panelspeed);
+				if (highlightopen == true) {
+                    $('#cp-'+currentpanel + ' .expandable-panel-heading').removeClass('header-active');
+                }
+            }
+        });
+ 
+        function resetpanels() {
+            for (var i=1; i<=totalpanels; i++) {
+                if (currentpanel != i) {
+                    $('#cp-'+i).find('.icon-close-open').css('background-position', '0px 0px');
+                    $('#cp-'+i).find('.expandable-panel-content').animate({'margin-top':-2*panelheight[i]}, panelspeed);
+                    if (highlightopen == true) {
+                        $('#cp-'+i + ' .expandable-panel-heading').removeClass('header-active');
+                    }
+                }
+            }
+        }
+        
+       //Uncomment these lines if the expandable panels are not a fixed width and need to resize
+       $( window ).resize(function() {
+          panelinit();
+        });
+ 
+        $(window).load(function() {
+            panelinit();
+        }); //END LOAD
+		}); //END READY
+	})(jQuery);
+	
+	//TREE
+	var navigationtree = [];
+	var communicationtree = [];
+	var weathertree = [];
+	var sciencetree = [];
+	var othertree = [];
+	function getTree() {
+	  // Some logic to retrieve, or generate tree structure
+	  var tree = [
+		  /*{
+			text: "Navigation",
+			tags: ['Ready'],
+			state: {expanded: false},
+			nodes: [
+			  {
+				text: "Beidou",
+				tags: ['2'],
+				nodes: [
+				  {text: "GEO 1"},
+				  {text: "GEO 2"}
+				]
+			  },
+			  {
+				text: "GPS",
+				tags: ['4'],
+				nodes: [
+				  {text: "GPS 1"},
+				  {text: "GPS 2"},
+				  {text: "GPS 3"},
+				  {text: "GPS 4"},
+				]
+			  },
+			]
+		  },
+		  {
+			text: "Communication",
+			tags: ['Not Ready'],
+			state: {disabled: true},
+		  }*/
+		];
+	  tree = [];
+	  tree.push(new TLEnode("Navigation",navigationtree.length>0?"Ready":"Failed",new TLEnodestate(false,navigationtree.length<=0?true:false,false,false),navigationtree));
+	  tree.push(new TLEnode("Communication",communicationtree.length>0?"Ready":"Failed",new TLEnodestate(false,communicationtree.length<=0?true:false,false,false),communicationtree));
+	  tree.push(new TLEnode("Weather",weathertree.length>0?"Ready":"Failed",new TLEnodestate(false,weathertree.length<=0?true:false,false,false),weathertree));
+	  tree.push(new TLEnode("Science",sciencetree.length>0?"Ready":"Failed",new TLEnodestate(false,sciencetree.length<=0?true:false,false,false),sciencetree));
+	  tree.push(new TLEnode("Other",othertree.length>0?"Ready":"Failed",new TLEnodestate(false,othertree.length<=0?true:false,false,false),othertree));
+	  
+	  return tree;
+	}
+	function TLEnode(text,tags,state,nodes){
+		this.text = text;
+		this.tags = [];
+		this.tags.push(tags);
+		this.state = state;
+		this.nodes = nodes;
+	}
+	function TLEnodestate(checked,disabled,selected,expanded){
+		this.checked = checked;
+		this.disabled = disabled;
+		this.selected = selected;
+		this.expanded = expanded;
+	}
+	function setTree(){
+		$('#tree').treeview({
+			data: getTree(),
+			//multiSelect : true,
+			selectedColor:'#000000',
+			//selectedBackColor: "#FFFFFF",
+			showCheckbox:true,
+			showTags : true,
+			onNodeExpanded:function(event,nodeId){
+				var roottreelist = $('#tree').treeview('getExpanded', nodeId);
+				for(var i=0;i<roottreelist.length;i++){
+					if(roottreelist[i].text=="Navigation"&&roottreelist[i].tags[0]=="Ready"){
+						var totalsat = 0;
+						var childs = roottreelist[i].nodes;
+						if(childs!=null){
+							for(var j=0;j<childs.length;j++){
+								totalsat += childs[j].tags[0];
+							}
+						}
+						roottreelist[i].tags[0] = totalsat;
+					}
+					else if(roottreelist[i].text=="Communication"&&roottreelist[i].tags[0]=="Ready"){
+						var totalsat = 0;
+						var childs = roottreelist[i].nodes;
+						if(childs!=null){
+							for(var j=0;j<childs.length;j++){
+								totalsat += childs[j].tags[0];
+							}
+						}
+						roottreelist[i].tags[0] = totalsat;
+					}
+					else if(roottreelist[i].text=="Weather"&&roottreelist[i].tags[0]=="Ready"){
+						var totalsat = 0;
+						var childs = roottreelist[i].nodes;
+						if(childs!=null){
+							for(var j=0;j<childs.length;j++){
+								totalsat += childs[j].tags[0];
+							}
+						}
+						roottreelist[i].tags[0] = totalsat;
+					}
+					else if(roottreelist[i].text=="Science"&&roottreelist[i].tags[0]=="Ready"){
+						var totalsat = 0;
+						var childs = roottreelist[i].nodes;
+						if(childs!=null){
+							for(var j=0;j<childs.length;j++){
+								totalsat += childs[j].tags[0];
+							}
+						}
+						roottreelist[i].tags[0] = totalsat;
+					}
+					else if(roottreelist[i].text=="Other"&&roottreelist[i].tags[0]=="Ready"){
+						var totalsat = 0;
+						var childs = roottreelist[i].nodes;
+						if(childs!=null){
+							for(var j=0;j<childs.length;j++){
+								totalsat += childs[j].tags[0];
+							}
+						}
+						roottreelist[i].tags[0] = totalsat;
+					}
+				}
+			},
+			onNodeChecked:function(event, nodeId) {
+				showLoading();
+				var checkstate = nodeId.state.checked;
+				if(nodeId.tag=='Ready'){
+					//alert(JSON.stringify(nodeId));
+				}
+				else{
+					//alert(JSON.stringify(nodeId));
+					//childs
+					var childs = nodeId.nodes;
+					if(childs!=null){
+						for(var i=0;i<childs.length;i++){
+							$('#tree').treeview('checkNode', [ childs[i].nodeId, { silent: true } ]);
+							readTLErecord(childs[i].text);
+								//grandchilds
+								var grandchilds = childs[i].nodes;
+								if(grandchilds!=null){
+									for(var j=0;j<grandchilds.length;j++){
+										$('#tree').treeview('checkNode', [ grandchilds[j].nodeId, { silent: true } ]);
+										readTLErecord(grandchilds[j].text);
+									}
+								}
+						}
+					}
+					else{
+						$('#tree').treeview('checkNode', [ $('#tree').treeview('getParent', nodeId), { silent: true } ]);
+						readTLErecord(nodeId.text);
+					}
+				}
+			},
+			onNodeUnchecked:function(event, nodeId) {
+				showLoading();
+				var checkstate = nodeId.state.checked;
+				if(nodeId.text=='Ready'){
+					//alert(JSON.stringify(nodeId));
+				}
+				else{
+					//alert(JSON.stringify(nodeId));
+					var childs = nodeId.nodes;
+					if(childs!=null){
+						for(var i=0;i<childs.length;i++){
+							$('#tree').treeview('uncheckNode', [ childs[i].nodeId, { silent: true } ]);
+							removeSGP4byTLErecord(childs[i].text);
+								//grandchilds
+								var grandchilds = childs[i].nodes;
+								if(grandchilds!=null){
+									for(var j=0;j<grandchilds.length;j++){
+										$('#tree').treeview('uncheckNode', [ grandchilds[j].nodeId, { silent: true } ]);
+										removeSGP4byTLErecord(grandchilds[j].text);
+									}
+								}
+						}
+					}
+					else{
+						var parentnode = $('#tree').treeview('getParent', nodeId);
+						var siblings = parentnode.nodes;
+						var truefalse = false;
+						if(siblings!=null){
+							for(var i=0;i<siblings.length;i++){
+								if(siblings[i].state.checked==true) truefalse = true;
+							}
+							if( truefalse == false)
+								$('#tree').treeview('uncheckNode', [ parentnode, { silent: true } ]);
+						}
+						removeSGP4byTLErecord(nodeId.text);
+					}
+				}
+			}
+		});
+		  
+	}
+
+	//TLE record work with tree checkbox
+	function TLErecord(title,line1,line2){
+		this.title = title;
+		this.line1 = line1;
+		this.line2 = line2;
+	}
+	function loopTleRecord(records,title){
+		for(var i=0;i<records.length;i++){
+			if(records[i].title==title)
+				return i;
+		}
+		return undefined;
+	}
+	function readTLErecord(title){
+		//new satellite?
+		if(BigEarth.SatellliteNames.indexOf(title)>=0)
+			return;
+		//Create SGP4 object
+		var id = loopTleRecord(BigEarth.TLErecords,title);
+		if(id!="undefined"){
+			var record = BigEarth.TLErecords[id];
+			if(record!=null){
+				var sgp4 = new SGP4(BigEarth,record.title,record.line1,record.line2);
+				BigEarth.SatellliteNames.push(title);
+				BigEarth.SGP4Array.push(sgp4);
+			}
+		}
+	}
+	function removeSGP4byTLErecord(title){
+		var sgp4 = BigEarth.SGP4Array[BigEarth.SatellliteNames.indexOf(title)];
+		if(sgp4!=null){
+			if(sgp4.satellite!=null)sgp4.satellite.removeall();
+			if(sgp4.cone!=null)sgp4.cone.removeall();
+			if(sgp4.circle!=null)sgp4.circle.removeall();
+			if(sgp4.line!=null)sgp4.line.removeall();
+			BigEarth.SatellliteNames.splice(BigEarth.SatellliteNames.indexOf(title),1);
+			BigEarth.SGP4Array.splice(BigEarth.SGP4Array.indexOf(sgp4),1);	
+		}
+	}
+	
+	//read all TLE from celestrak website data
+	DisplayREALTLE(navigationtree,'beidou','');
+	DisplayREALTLE(navigationtree,'gps-ops','');
+	DisplayREALTLE(navigationtree,'glo-ops','');
+	DisplayREALTLE(navigationtree,'galileo','');
+	DisplayREALTLE(navigationtree,'sbas','');
+	DisplayREALTLE(navigationtree,'nnss','');
+	DisplayREALTLE(navigationtree,'musson','');
+	
+	DisplayREALTLE(communicationtree,'geo','');
+	DisplayREALTLE(communicationtree,'intelsat','');
+	DisplayREALTLE(communicationtree,'gorizont','');
+	DisplayREALTLE(communicationtree,'raduga','');
+	DisplayREALTLE(communicationtree,'molniya','');
+	DisplayREALTLE(communicationtree,'iridium','');
+	DisplayREALTLE(communicationtree,'orbcomm','');
+	DisplayREALTLE(communicationtree,'globalstar','');
+	DisplayREALTLE(communicationtree,'amateur','');
+	DisplayREALTLE(communicationtree,'x-comm','');
+	DisplayREALTLE(communicationtree,'other-comm','');
+	
+	DisplayREALTLE(weathertree,'weather','');
+	DisplayREALTLE(weathertree,'noaa','');
+	DisplayREALTLE(weathertree,'goes','');
+	DisplayREALTLE(weathertree,'sarsat','');
+	DisplayREALTLE(weathertree,'dmc','');
+	DisplayREALTLE(weathertree,'tdrss','');
+	DisplayREALTLE(weathertree,'argos','');
+	DisplayREALTLE(weathertree,'resource','');
+	
+	DisplayREALTLE(sciencetree,'science','');
+	DisplayREALTLE(sciencetree,'geodetic','');
+	DisplayREALTLE(sciencetree,'engineering','');
+	DisplayREALTLE(sciencetree,'education','');
+	
+	DisplayREALTLE(othertree,'military','');
+	DisplayREALTLE(othertree,'radar','');
+	DisplayREALTLE(othertree,'cubesat','');
+	DisplayREALTLE(othertree,'other','');
+	setTree();
+	
+	//LOADING
+	function showLoading(){
+	   $('#Loading').css('display','block');
+       setTimeout(function(){
+			$('#Loading').css('display','none');
+	   },3000); 
+	}
+	$(document).ready(function() {
+       setTimeout(function(){
+			$('#Loading').css('display','none');
+	   },10000); 
+    });
+	</script>
+</body>
+</html>

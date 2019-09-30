@@ -1,0 +1,67 @@
+<html>
+<head>
+<script type="text/javascript" src="GeoFunctions.js"></script>
+<script type="text/javascript" src="MathUtils.js"></script>
+<script type="text/javascript" src="J2kCoordinateConversion.js"></script>
+<script type="text/javascript" src="AstroConst.js"></script>
+
+<script type="text/javascript" src="Time.js"></script>
+<script type="text/javascript" src="TLE.js"></script>
+<script type="text/javascript" src="SGP4.js"></script>
+<script type="text/javascript" src="SGP4unit.js"></script>
+<script type="text/javascript" src="SGP4utils.js"></script>
+<script type="text/javascript" src="SGP4SatData.js"></script>
+<script type="text/javascript" src="SatelliteTleSGP4.js"></script>
+</head>
+<body>
+<div><input type="file"  accept="text/*" name="TLE_file" id="TLE_file" onchange="fileSelected();" style="width:200px;"/></div>
+</body>
+<script>
+	function fileSelected(){
+		var iMaxFilesize = 1048576; // 1MB
+		// get selected file element
+		var oFile = document.getElementById('TLE_file').files[0];
+		// filter for image files
+		var rFilter = /^(text\/plain)$/i;
+		if (!rFilter.test(oFile.type)) {alert('Please choose text!');return;}
+		// little test for filesize
+		if (oFile.size > iMaxFilesize) {alert('Max Size exceed!');return;}
+		
+		//Read file
+		var title = "";
+		var line1 = "";
+		var line2 = "";
+		if (oFile) {
+		  var r = new FileReader();
+		  r.onload = function(e) { 
+			  var contents = e.target.result;
+			  var contentarray = contents.split("\n");
+			  for(var i=0;i<contentarray.length;i++){
+				  if(contentarray[i].substr(0,1)=='1'){
+					line1 = contentarray[i];
+				  }
+				  else if(contentarray[i].substr(0,1)=='2'){
+					line2 = contentarray[i];
+				  }
+				  else{
+					title = contentarray[i];
+				  }
+				  if(title!=""&&line1!=""&&line2!=""){
+					alert(title+" "+line1+" "+line2);
+					//Create SGP4 object	
+					var sgp4 = new SGP4(title,line1,line2);
+					title = "";
+					line1 = "";
+					line2 = "";
+					break;
+				  }
+			  }
+		  }
+		  r.readAsText(oFile);
+		} else { 
+		  alert("Failed to load file");
+		}
+	}
+	
+</script>
+</html>

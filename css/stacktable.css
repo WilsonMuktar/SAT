@@ -1,0 +1,14 @@
+.stacktable { width: auto; color:#FFF; }
+.st-head-row { padding-top: 1em; }
+.st-head-row.st-head-row-main { font-size: 1.5em; padding-top: 0; }
+.st-key { width: 50%; text-align: left; margin: 2%; }
+.st-val { width: 100%; text-align: left; margin: 2%; }
+
+/* RESPONSIVE EXAMPLE */
+.stacktable.large-only { display: table; }
+.stacktable.small-only { display: none; }
+
+@media (max-width: 800px) {
+  .stacktable.large-only { display: none; }
+  .stacktable.small-only { display: table; }
+}
